@@ -93,4 +93,31 @@ public class Moneda {
         }
         return monedas;
     }
+
+    //Metodo que devuelve un objeto moneda con base en la clave primaria
+    public static Moneda obtener(int id) throws Exception {
+        try {
+            BaseDatos bd = ConexionBD.obtenerBaseDatos();
+            if (bd != null) {
+                ResultSet rs = bd.consultar("SELECT * FROM Moneda WHERE Id=" + id);
+                if (rs != null) {
+                    rs.beforeFirst();
+                    return new Moneda(Util.leerEntero(rs, "Id"),
+                            Util.leerTexto(rs, "Moneda"),
+                            Util.leerTexto(rs, "Sigla"),
+                            Util.leerTexto(rs, "Simbolo"),
+                            Util.leerTexto(rs, "Emisor")
+                    );
+                }
+
+            } else {
+                throw new Exception("No se ha conectado a la base de datos");
+            }
+        } catch (Exception ex) {
+            throw new Exception("Error al obtener una Moneda:\n [** " + ex + " **]");
+        }
+
+        return null;
+    }
+
 }
