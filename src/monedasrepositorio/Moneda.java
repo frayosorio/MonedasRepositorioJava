@@ -102,6 +102,7 @@ public class Moneda {
                 ResultSet rs = bd.consultar("SELECT * FROM Moneda WHERE Id=" + id);
                 if (rs != null) {
                     rs.beforeFirst();
+                    rs.next();
                     return new Moneda(Util.leerEntero(rs, "Id"),
                             Util.leerTexto(rs, "Moneda"),
                             Util.leerTexto(rs, "Sigla"),
