@@ -65,6 +65,19 @@ public class Moneda {
         this.emisor = emisor;
     }
 
+    public byte[] getImagen() throws Exception {
+        try {
+            BaseDatos bd = ConexionBD.obtenerBaseDatos();
+            ResultSet rs = bd.consultar("SELECT Imagen FROM Moneda WHERE Id=" + id);
+            if (rs.next()) {
+                return rs.getBytes("Imagen");
+            }
+        } catch (Exception ex) {
+            throw new Exception("Error al consultar Imagen:\n [** " + ex + " **]");
+        }
+        return null;
+    }//getImagen
+
     //************** Métodos estaticos
     //Metodo que lista todas las monedas
     public static List<Moneda> obtener() throws Exception {
@@ -120,5 +133,75 @@ public class Moneda {
 
         return null;
     }
+
+    //Metodo que busca monedas que cumplan un criterio de búsqueda
+    public static List<Moneda> buscar(int DatoBusqueda, String Dato) throws Exception {
+        List<Moneda> monedas = new ArrayList<>();
+        try {
+            BaseDatos bd = ConexionBD.obtenerBaseDatos();
+            String strSQL = "CALL spBuscarMonedas('" + Dato
+                    + "','" + DatoBusqueda + "')";
+            ResultSet rs = bd.consultar(strSQL);
+            if (rs != null) {
+                rs.beforeFirst();
+                while (rs.next()) {
+                    monedas.add(new Moneda(Util.leerEntero(rs, "Id"),
+                            Util.leerTexto(rs, "Moneda"),
+                            Util.leerTexto(rs, "Sigla"),
+                            Util.leerTexto(rs, "Simbolo"),
+                            Util.leerTexto(rs, "Emisor")
+                    ));
+                }
+            }
+        } catch (Exception ex) {
+            throw new Exception("Error buscando Monedaes:\n [** " + ex + " **]");
+        }
+        return monedas;
+    }//Buscar
+
+    //Método para Guardar un Moneda
+    public static boolean guardar(Moneda m) throws Exception {
+        //Son válidos todos los datos?
+        if (!m.getMoneda().isEmpty()
+                && !m.getSigla().isEmpty()) {
+            BaseDatos bd = ConexionBD.obtenerBaseDatos();
+            //Construir cadena de consulta
+            String strSQL = "CALL spActualizarMoneda('"
+                    + m.getId() + "', '"
+                    + m.getMoneda() + "', '"
+                    + m.getSigla() + "', '"
+                    + m.getSimbolo() + "', '"
+                    + m.getEmisor() + "')";
+            try {
+                //Ejecutar la consulta
+                return bd.actualizar(strSQL);
+            } catch (Exception ex) {
+                throw new Exception("Error al actualizar Moneda:\n [** " + ex + " **]");
+            }
+        }
+        return false;
+    }//Guardar
+
+    //Método para Eliminar un Moneda
+    public static boolean eliminar(Moneda m) throws Exception {
+        try {
+            BaseDatos bd = ConexionBD.obtenerBaseDatos();
+            String strSQL = "DELETE FROM Moneda"
+                    + " WHERE Id='" + m.getId() + "'";
+            //Ejecutar la consulta
+            return bd.actualizar(strSQL);
+        } catch (Exception ex) {
+            throw new Exception("Error al eliminar Moneda:\n [** " + ex + " **]");
+        }
+    }//Eliminar
+
+    public static int obtenerIndice(List<Moneda> monedas, int Id) {
+        for (int i = 0; i < monedas.size(); i++) {
+            if (monedas.get(i).getId() == Id) {
+                return i;
+            }
+        }
+        return -1;
+    }//obtenerIndice
 
 }
